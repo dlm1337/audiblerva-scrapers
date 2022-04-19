@@ -288,7 +288,7 @@ let parseRichmondShowsDetailPageBrowserFn = (detailCtx, curEvent: models.Capture
 };
 
 export const parseMainCamelPageBrowserFn = (daysCtx, results, log, deps): [models.CaptureLog, models.CaptureResults] => {  
-  try {     
+  try {    
     //get each day w >= 1 event
     for (let dayItem of daysCtx||[]) {      
       //get each event
@@ -319,14 +319,14 @@ export const parseMainCamelPageBrowserFn = (daysCtx, results, log, deps): [model
         
         //get headliners
         let titleSegments = [];
-        let headlinersLinkCtx = eventItem.querySelectorAll(".rhpSingleEvent");
+        let headlinersLinkCtx = eventItem.querySelectorAll(".rhp-event-thumb");
         for (let headlinerLinkItem of headlinersLinkCtx||[]) {
          // let isPrimary = headlinerLinkItem.classList.contains('summary');
-          let linkElement = headlinerLinkItem.querySelector('#eventTitle');
+          let linkElement = headlinerLinkItem.querySelector('a:first-child');
           let eventUri :models.UriType = { uri: linkElement.getAttribute("href").trim(), isCaptureSrc: true};
-          if (eventUri.uri) {
-            eventUri.uri = deps.channelCfg.DOMAIN_NAME + eventUri.uri;
-          }
+         // if (eventUri.uri) {
+           // eventUri.uri = deps.channelCfg.DOMAIN_NAME + eventUri.uri;
+         // }
           let performerName = linkElement.innerText.trim();
           let testExist = (el:models.CapturePerformer)=> el.performerName==performerName;
           
@@ -339,55 +339,56 @@ export const parseMainCamelPageBrowserFn = (daysCtx, results, log, deps): [model
         }
 
         // test if at broadberry
-        let venueElem = eventItem.querySelector('h2.venue.location');
-        if (venueElem) {
-            if (venueElem.innerText.match(/broadberry/i)) {
-                event.venueName = deps.channelCfg.VENUE_NAME;
-            }
-        }
+        // let venueElem = eventItem.querySelector('h2.venue.location');
+        // if (venueElem) {
+        //       if (venueElem.innerText.match(/broadberry/i)) { 
+        //         event.venueName = deps.channelCfg.VENUE_NAME;
+        //       }
+        // }
 
         //get supporting acts
-        let supporterLinkCtx = eventItem.querySelectorAll("h2.supports a");
-        for (let supporterLinkItem of supporterLinkCtx||[]) {
-          let eventUri :models.UriType = { uri: supporterLinkItem.getAttribute("href").trim(), isCaptureSrc: true};
-          if (eventUri.uri) {
-            eventUri.uri = deps.channelCfg.DOMAIN_NAME + eventUri.uri;
-          }
+        // let supporterLinkCtx = eventItem.querySelectorAll("h2.supports a");
+        // for (let supporterLinkItem of supporterLinkCtx||[]) {
+        //   let eventUri :models.UriType = { uri: supporterLinkItem.getAttribute("href").trim(), isCaptureSrc: true};
+        //   if (eventUri.uri) {
+        //     eventUri.uri = deps.channelCfg.DOMAIN_NAME + eventUri.uri;
+        //   }
 
-          let performerName = supporterLinkItem.innerText.trim();
-          let testExist = (el:models.CapturePerformer)=> el.performerName==performerName;
+        //   let performerName = supporterLinkItem.innerText.trim();
+        //   let testExist = (el:models.CapturePerformer)=> el.performerName==performerName;
 
-          if (event.eventUris.map(x => x.uri).indexOf(eventUri.uri) === -1) {
-            event.eventUris.push(eventUri);
-          }
-          if (titleSegments.findIndex(testExist) === -1) {
-            titleSegments.push(performerName);
-          }
-        }
+        //   if (event.eventUris.map(x => x.uri).indexOf(eventUri.uri) === -1) {
+        //     event.eventUris.push(eventUri);
+        //   }
+        //   if (titleSegments.findIndex(testExist) === -1) {
+        //     titleSegments.push(performerName);
+        //   }
+        // }
 
         event.eventTitle = titleSegments.join(" / ");
 
         //ticket link
-        let ticketsLink = eventItem.querySelector("h3.ticket-link a");
-        if (ticketsLink) {
-          event.ticketUri = ticketsLink.getAttribute("href");
+        let ticketsLink = eventItem.querySelector(".rhp-event-cta");
+        let ticketsA = ticketsLink.querySelector('a:first-child');
+        if (ticketsA) {
+          event.ticketUri = ticketsA.getAttribute("href").trim();
           if (event.eventUris.map(x => x.uri).indexOf(event.ticketUri) === -1) {
             event.eventUris.push({ uri: event.ticketUri, isCaptureSrc: false});
           }
         }
 
         //free events adv on the calendar, more ticket info is on the detail page
-        let isFree = eventItem.querySelector("h3.free");
-        if (isFree) {
-          event.ticketCostRaw = "Free";
-          event.ticketCost.push(<models.TicketAmtInfo> { amt: 0, qualifier: "" });
-        }
+        // let isFree = eventItem.querySelector("h3.free");
+        // if (isFree) {
+        //   event.ticketCostRaw = "Free";
+        //   event.ticketCost.push(<models.TicketAmtInfo> { amt: 0, qualifier: "" });
+        // }
         
-        if (eventItem.querySelector('h2.age-restriction.all-ages')) {
-          event.minAge = 0;
-        } else if (eventItem.querySelector('h2.age-restriction.over-21')) {
-          event.minAge = 21;
-        }
+        // if (eventItem.querySelector('h2.age-restriction.all-ages')) {
+        //   event.minAge = 0;
+        // } else if (eventItem.querySelector('h2.age-restriction.over-21')) {
+        //   event.minAge = 21;
+        // }
 
         results.events.push(event);
       } //event loop
