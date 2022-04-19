@@ -25,7 +25,7 @@ export const CFG = {
     persistImagesToAws: true
   },
   camel : {
-    PRIMARY_URI: "https://www.thecamel.org/calendar/",
+    PRIMARY_URI: "https://www.thecamel.org/events/",
     DOMAIN_NAME: "https://www.thecamel.org",    
     DAY_EVENT_SELECTOR : "div.entry-content table td.vevent.has-event",
     MAIN_PAGE_EVENT_SELECTOR: ".eventWrapper",

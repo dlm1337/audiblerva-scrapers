@@ -5,7 +5,8 @@ import * as models from "../core/models";
 import * as parsers from "../helpers/parse-utils";
 import * as domUtils from "../helpers/dom-nav-utils";
 import * as captureHelpers from "../capture/helpers";
+import * as captureHelpersCamel from "../capture/camelHelpers";
 import * as awsHelpers from "../helpers/aws-utils";
 import * as screenshots from "../core/screenshots";
 
-export { puppeteer, puppeteerUtils, apiClient, models, parsers, domUtils, captureHelpers, awsHelpers, screenshots};
+export { puppeteer, puppeteerUtils, apiClient, models, parsers, domUtils, captureHelpers, captureHelpersCamel, awsHelpers, screenshots};

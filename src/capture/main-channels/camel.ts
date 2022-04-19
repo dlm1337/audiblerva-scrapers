@@ -8,7 +8,7 @@ declare const injectedHelpers : any;
 
 export const CAPTURE_KEY : string = 'camel';
 
-import {puppeteer, puppeteerUtils, apiClient, models, parsers, captureHelpers, awsHelpers, screenshots } from '../../barrel';
+import {puppeteer, puppeteerUtils, apiClient, models, parsers, captureHelpersCamel, awsHelpers, screenshots } from '../../barrel';
 import { CFG } from '../../config';
 
 let envCfg = CFG[process.env.NODE_ENV || "development"];
@@ -60,7 +60,7 @@ export async function main() {
     [log, results] = await 
       page.$$eval<[models.CaptureLog, models.CaptureResults], models.CaptureResults, models.CaptureLog, any>(
         channelCfg.DAY_EVENT_SELECTOR, 
-        captureHelpers.parseMainCamelPageBrowserFn,
+        captureHelpersCamel.parseMainCamelPageBrowserFn,
         results,
         log,
         bundledRuntimeDependencies
@@ -83,7 +83,7 @@ export async function main() {
 
         //scrape details page
         bundledRuntimeDependencies.curUri = eventDetailUri.uri;        
-        [log, curEvent] = await captureHelpers.parseRichmondShows(page, curEvent, log, bundledRuntimeDependencies);
+        [log, curEvent] = await captureHelpersCamel.parseRichmondShows(page, curEvent, log, bundledRuntimeDependencies);
 
         results.events[i] = curEvent;        
         console.log(results.events[i]);
@@ -100,7 +100,7 @@ export async function main() {
   } catch (e) {
     log.errorLogs.push(`Top-Level Capture Page Exception Thrown: ${e.message} at ${channelCfg.PRIMARY_URI}`);
   } finally {
-    captureHelpers.outputLog(log); 
+    captureHelpersCamel.outputLog(log); 
   }
     
  // let testHttp = await apiClient.postCaptureResults(log, results);
