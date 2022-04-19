@@ -288,7 +288,7 @@ let parseRichmondShowsDetailPageBrowserFn = (detailCtx, curEvent: models.Capture
 };
 
 export const parseMainCamelPageBrowserFn = (daysCtx, results, log, deps): [models.CaptureLog, models.CaptureResults] => {  
-  try {    
+  try {     
     //get each day w >= 1 event
     for (let dayItem of daysCtx||[]) {      
       //get each event
@@ -319,10 +319,10 @@ export const parseMainCamelPageBrowserFn = (daysCtx, results, log, deps): [model
         
         //get headliners
         let titleSegments = [];
-        let headlinersLinkCtx = eventItem.querySelectorAll("h1.headliners");
+        let headlinersLinkCtx = eventItem.querySelectorAll(".rhpSingleEvent");
         for (let headlinerLinkItem of headlinersLinkCtx||[]) {
-          let isPrimary = headlinerLinkItem.classList.contains('summary');
-          let linkElement = headlinerLinkItem.querySelector('a:first-child');
+         // let isPrimary = headlinerLinkItem.classList.contains('summary');
+          let linkElement = headlinerLinkItem.querySelector('#eventTitle');
           let eventUri :models.UriType = { uri: linkElement.getAttribute("href").trim(), isCaptureSrc: true};
           if (eventUri.uri) {
             eventUri.uri = deps.channelCfg.DOMAIN_NAME + eventUri.uri;
