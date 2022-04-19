@@ -23,45 +23,45 @@ import * as sw from "./capture/main-channels/style-weekly";
     //     console.log('i finished strange matter');
     // } 
 
-    if (evalRun(sw.CAPTURE_KEY)) {
-      await sw.main()
-      console.log('i finished style weekly');
-    } 
+    // if (evalRun(sw.CAPTURE_KEY)) {
+    //   await sw.main()
+    //   console.log('i finished style weekly');
+    // } 
 
-    if (evalRun(bb.CAPTURE_KEY)) {
-      await bb.main()
-      console.log('i finished broadberry');
-    } 
+    // if (evalRun(bb.CAPTURE_KEY)) {
+    //   await bb.main()
+    //   console.log('i finished broadberry');
+    // } 
 
-    if (evalRun(nat.CAPTURE_KEY)) {
-      await nat.main()
-      console.log('i finished the national');
-    } 
+    // if (evalRun(nat.CAPTURE_KEY)) {
+    //   await nat.main()
+    //   console.log('i finished the national');
+    // } 
 
-    if (evalRun(tp.CAPTURE_KEY)) {
-      await tp.main()
-      console.log('i finished the tin-pan');
-    } 
+    // if (evalRun(tp.CAPTURE_KEY)) {
+    //   await tp.main()
+    //   console.log('i finished the tin-pan');
+    // } 
 
-    if (evalRun(csc.CAPTURE_KEY)) {
-      await csc.main()
-      console.log('i finished cary st cafe');
-    } 
+    // if (evalRun(csc.CAPTURE_KEY)) {
+    //   await csc.main()
+    //   console.log('i finished cary st cafe');
+    // } 
 
-    if (evalRun(rs.CAPTURE_KEY)) {
-      await rs.main()
-      console.log('i finished richmond symphony');
-    } 
+    // if (evalRun(rs.CAPTURE_KEY)) {
+    //   await rs.main()
+    //   console.log('i finished richmond symphony');
+    // } 
 
-    if (evalRun(rvas.CAPTURE_KEY)) {
-      await rvas.main()
-      console.log('i finished rva shows');
-    } 
+    // if (evalRun(rvas.CAPTURE_KEY)) {
+    //   await rvas.main()
+    //   console.log('i finished rva shows');
+    // } 
 
-    if (evalRun(eb.CAPTURE_KEY)) {
-      await eb.main()
-      console.log('i finished event brite');
-    } 
+    // if (evalRun(eb.CAPTURE_KEY)) {
+    //   await eb.main()
+    //   console.log('i finished event brite');
+    // } 
     
     process.exit(0);
 })();

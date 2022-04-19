@@ -28,7 +28,7 @@ export const CFG = {
     PRIMARY_URI: "https://www.thecamel.org/calendar/",
     DOMAIN_NAME: "https://www.thecamel.org",    
     DAY_EVENT_SELECTOR : "div.entry-content table td.vevent.has-event",
-    MAIN_PAGE_EVENT_SELECTOR: "section.one-event",
+    MAIN_PAGE_EVENT_SELECTOR: ".eventWrapper",
     DETAIL_CONTENT_SELECTOR : "div.entry-content article.event-detail",
     CHANNEL_NAME: "The Camel Website",
     CHANNEL_IMAGE: {

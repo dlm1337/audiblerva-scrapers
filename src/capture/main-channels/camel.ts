@@ -68,7 +68,7 @@ export async function main() {
         
     console.log(`identified ${results.events.length} events`);
     
-    log = await screenshots.doScreenshot(log, page, channelCfg.PRIMARY_URI, envCfg.s3BucketName);
+ //   log = await screenshots.doScreenshot(log, page, channelCfg.PRIMARY_URI, envCfg.s3BucketName);
     
     //Walk through each event in the results and navigate to its detail page    
     for(let i = 0; results.events.length > 0 && i < results.events.length; i++) {    
@@ -86,7 +86,7 @@ export async function main() {
         [log, curEvent] = await captureHelpers.parseRichmondShows(page, curEvent, log, bundledRuntimeDependencies);
 
         results.events[i] = curEvent;        
-
+        console.log(results.events[i]);
       } //if event has detail page
     } //for each event
 
@@ -94,8 +94,8 @@ export async function main() {
     results.events = results.events.filter(val => val.startDt);
     log.totalCapturedEvents = results.events.length;
 
-    if (envCfg.persistImagesToAws)
-      [ log, results ] = await awsHelpers.persistImagesToAws(log, results, envCfg.s3BucketName);
+  //  if (envCfg.persistImagesToAws)
+ //     [ log, results ] = await awsHelpers.persistImagesToAws(log, results, envCfg.s3BucketName);
         
   } catch (e) {
     log.errorLogs.push(`Top-Level Capture Page Exception Thrown: ${e.message} at ${channelCfg.PRIMARY_URI}`);
@@ -103,7 +103,7 @@ export async function main() {
     captureHelpers.outputLog(log); 
   }
     
-  let testHttp = await apiClient.postCaptureResults(log, results);
+ // let testHttp = await apiClient.postCaptureResults(log, results);
 
   return 0;
 }; //main
