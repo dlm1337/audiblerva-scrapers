@@ -286,10 +286,11 @@ let parseRichmondShowsDetailPageBrowserFn = (detailCtx, curEvent: models.Capture
   
   return [log, curEvent];
 };
-
 export const parseMainCamelPageBrowserFn = (daysCtx, results, log, deps): [models.CaptureLog, models.CaptureResults] => {  
   try {    
     //get each day w >= 1 event
+    
+    var x = 0;
     for (let dayItem of daysCtx||[]) {      
       //get each event
       let eventsCtx = dayItem.querySelectorAll(deps.eventSelector);
@@ -375,8 +376,23 @@ export const parseMainCamelPageBrowserFn = (daysCtx, results, log, deps): [model
           if (event.eventUris.map(x => x.uri).indexOf(event.ticketUri) === -1) {
             event.eventUris.push({ uri: event.ticketUri, isCaptureSrc: false});
           }
-        }
+        } 
 
+        
+        console.log(x);
+        x++;
+        try{
+          let ticketCost = eventItem.querySelector(".eventCost");  
+          let ticketCostSpan = ticketCost.querySelector("span");
+          let ticketCostText = ticketCostSpan.innerText.trim();
+          ticketCostText = ticketCostText.replace("$", "");
+          let ticketCostNum = parseInt(ticketCostText);
+          event.ticketCost.push(<models.TicketAmtInfo> { amt: ticketCostNum, qualifier: "" });
+        }catch(e) {
+        log.errorLogs.push(`No Ticket Cost: ${e.message}`);
+
+        event.ticketCost.push(<models.TicketAmtInfo> { amt: 0, qualifier: "" });
+        } 
         //free events adv on the calendar, more ticket info is on the detail page
         // let isFree = eventItem.querySelector("h3.free");
         // if (isFree) {
