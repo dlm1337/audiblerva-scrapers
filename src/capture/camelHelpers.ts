@@ -328,7 +328,7 @@ export const parseMainCamelPageBrowserFn = (daysCtx, results, log, deps): [model
          // if (eventUri.uri) {
            // eventUri.uri = deps.channelCfg.DOMAIN_NAME + eventUri.uri;
          // }
-          let performerName = linkElement.innerText.trim();
+          let performerName = linkElement.getAttribute("title").trim()
           let testExist = (el:models.CapturePerformer)=> el.performerName==performerName;
           
           if (event.eventUris.map(x => x.uri).indexOf(eventUri.uri) === -1) {
@@ -336,6 +336,7 @@ export const parseMainCamelPageBrowserFn = (daysCtx, results, log, deps): [model
           }              
           if (titleSegments.findIndex(testExist) === -1) {
             titleSegments.push(performerName);
+            console.log(performerName);
           }
         }
 
@@ -377,10 +378,6 @@ export const parseMainCamelPageBrowserFn = (daysCtx, results, log, deps): [model
             event.eventUris.push({ uri: event.ticketUri, isCaptureSrc: false});
           }
         } 
-
-        
-        console.log(x);
-        x++;
         try{
           let ticketCost = eventItem.querySelector(".eventCost");  
           let ticketCostSpan = ticketCost.querySelector("span");
