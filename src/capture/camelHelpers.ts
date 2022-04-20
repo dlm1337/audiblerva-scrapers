@@ -305,104 +305,107 @@ let parseCamelDetailPageBrowserFn = (detailCtx, curEvent: models.CaptureEvent, l
       }
 
       if (!curEvent.ticketCostRaw) {
-        let tixPriceElem = curCtx.querySelector('.ticket-price .price-range');
-        if (tixPriceElem) {
-          let rawTixPriceTxt = tixPriceElem.innerText.trim();
+        let tixPriceElem = curCtx.querySelector('.eventCost');
+        let tixPriceElemSpan = tixPriceElem.querySelector('span');
+        if (tixPriceElemSpan) {
+          let rawTixPriceTxt = tixPriceElemSpan.innerText.trim();
           curEvent.ticketCostRaw = rawTixPriceTxt;
           curEvent.ticketCost = <models.TicketAmtInfo[]> injectedHelpers.parseTicketString(rawTixPriceTxt);
         } else {
-          log.infoLogs.push(`No ticket info found in h2.times span.doors in div.event-detail for page: ${deps.curUri}`);
+          log.infoLogs.push(`No ticket info found in .eventCost first child span for page: ${deps.curUri}`);
         }
       }
       
-      let fbShareElem = curCtx.querySelector('.share-events.share-plus .share-facebook a:first-child');
-      if (fbShareElem) {
-        curEvent.facebookShareUri = fbShareElem.getAttribute("href");
-      } else {
-        log.infoLogs.push(`No FB Share info found in .share-events.share-plus .share-facebook a:first-child for page: ${deps.curUri}`);
-      }
+      // let fbShareElem = curCtx.querySelector('.share-events.share-plus .share-facebook a:first-child');
+      // if (fbShareElem) {
+      //   curEvent.facebookShareUri = fbShareElem.getAttribute("href");
+      // } else {
+      //   log.infoLogs.push(`No FB Share info found in .share-events.share-plus .share-facebook a:first-child for page: ${deps.curUri}`);
+      // }
 
-      let twitterShareElem = curCtx.querySelector('.share-events.share-plus .share-twitter a:first-child');
-      if (twitterShareElem) {
-        curEvent.twitterShareUri = twitterShareElem.getAttribute("href");
-      } else {
-        log.infoLogs.push(`No Twitter Share info found in .share-events.share-plus .share-twitter a:first-child for page: ${deps.curUri}`);
-      }
+      // let twitterShareElem = curCtx.querySelector('.share-events.share-plus .share-twitter a:first-child');
+      // if (twitterShareElem) {
+      //   curEvent.twitterShareUri = twitterShareElem.getAttribute("href");
+      // } else {
+      //   log.infoLogs.push(`No Twitter Share info found in .share-events.share-plus .share-twitter a:first-child for page: ${deps.curUri}`);
+      // }
 
-      let iCalElem = curCtx.querySelector('.ical-sync a');
-      if (iCalElem) {
-        curEvent.iCalUri = iCalElem.getAttribute("href");
-      } else {
-        log.infoLogs.push(`No iCal info found in  for page: ${deps.curUri}`);
-      }
+      // let iCalElem = curCtx.querySelector('.ical-sync a');
+      // if (iCalElem) {
+      //   curEvent.iCalUri = iCalElem.getAttribute("href");
+      // } else {
+      //   log.infoLogs.push(`No iCal info found in  for page: ${deps.curUri}`);
+      // }
 
-      let gCalElem = curCtx.querySelector('.gcal-sync a');
-      if (gCalElem) {
-        curEvent.gCalUri = gCalElem.getAttribute("href");
-      } else {
-        log.infoLogs.push(`No gCal info found in  for page: ${deps.curUri}`);
-      }
+      // let gCalElem = curCtx.querySelector('.gcal-sync a');
+      // if (gCalElem) {
+      //   curEvent.gCalUri = gCalElem.getAttribute("href");
+      // } else {
+      //   log.infoLogs.push(`No gCal info found in  for page: ${deps.curUri}`);
+      // }
 
-      let artistBoxCtx = curCtx.querySelectorAll("div.artist-boxes div.artist-box-headliner, div.artist-boxes div.artist-box-support");
+      let artistBoxCtx = curCtx.querySelectorAll(".singleEventDetails");
       for (let artistBoxElem of artistBoxCtx||[]) {
-        let performerNameElem = artistBoxElem.querySelector('span.artist-name');
-        if (performerNameElem) {
+        let performerNameElem = artistBoxElem.querySelector('#eventTitle');
+        let performerNameElemTitle = performerNameElem.getAttribute('title');
+        if (performerNameElemTitle) {
 
         let curPerformer = <models.CapturePerformer> { 
-          performerName: performerNameElem.innerText.trim(),
+          performerName: performerNameElemTitle.trim(),
           performerUris: [],
           performerImageUris: []
         };
 
         curPerformer.isPrimaryPerformer = mainPerformer.toLowerCase()==curPerformer.performerName.toLowerCase();
 
-        let linksCtx = artistBoxElem.querySelectorAll('ul.tfly-more li a');
-        for(let linkElem of linksCtx||[]) {
-          let link = linkElem.getAttribute('href');
-          if (!link.match(/^#\w+/)) {
-            curPerformer.performerUris.push(link);
-          }
-        }
+        // let linksCtx = artistBoxElem.querySelectorAll('ul.tfly-more li a');
+        // for(let linkElem of linksCtx||[]) {
+        //   let link = linkElem.getAttribute('href');
+        //   if (!link.match(/^#\w+/)) {
+        //     curPerformer.performerUris.push(link);
+        //   }
+        // }
 
         //get performer bio image
-        let bioImgElem1 = artistBoxElem.querySelector('img.bio-image-right');
-        let bioImgElem2 = artistBoxElem.querySelector('img.bio-image-no-float');
-        let bioImgElem = bioImgElem1||bioImgElem2;
+        let bioImgElem1 = artistBoxElem.querySelector('.eventImgBox');
+        let bioImgElem1Img = bioImgElem1.querySelector('img');
+       // let bioImgElem2 = artistBoxElem.querySelector('img.bio-image-no-float');
+        let bioImgElem = bioImgElem1Img//||bioImgElem2;
         if (bioImgElem) {
           curPerformer.performerImageUris.push(bioImgElem.getAttribute("src"));
         } else {
-          log.infoLogs.push(`No Performer image found in img.bio-image-right for ${curPerformer.performerName} for page: ${deps.curUri}`);
+          log.infoLogs.push(`No Performer image found in .eventImgBox first child img for ${curPerformer.performerName} for page: ${deps.curUri}`);
         }
 
         //get performer bio
-        let bioElem = artistBoxElem.querySelector('div.bio');
-        if (bioElem) {
-          curPerformer.performerDesc = bioElem.innerText.trim();
-        } else {
-          log.infoLogs.push(`No Performer Bio found in div.bio for ${curPerformer.performerName} for page: ${deps.curUri}`);
-        }
+        // let bioElem = artistBoxElem.querySelector('div.bio');
+        // if (bioElem) {
+        //   curPerformer.performerDesc = bioElem.innerText.trim();
+        // } else {
+        //   log.infoLogs.push(`No Performer Bio found in div.bio for ${curPerformer.performerName} for page: ${deps.curUri}`);
+        // }
 
         curEvent.performers.push(curPerformer);
         } else {
-        log.warningLogs.push(`No Performer Name in Artist Box for page: ${deps.curUri}`);
+        log.warningLogs.push(`No Performer Name in page: ${deps.curUri}`);
         }
       }
       //get any performer info if there's no dedicated artist box
-      let performerDoubleCheck = 
-        ([...curCtx.querySelectorAll('div.event-info h1.headliners, div.event-info h2.supports')]
-        .map((x,i) => { 
-          return {
-            performerName: x.innerText.trim(),
-            performerUris: [],
-            performerImageUris: [],
-            isPrimaryPerformer: i ==0
-          } as CapturePerformer
-          } ));
-      for(let p of performerDoubleCheck) {
-        if (curEvent.performers.findIndex(x => x.performerName.toLowerCase()==p.performerName.toLowerCase()) == -1) {
-          curEvent.performers.push(p);
-        }
-      }
+      // let performerDoubleCheck = 
+      //   ([...curCtx.querySelectorAll('div.event-info h1.headliners, div.event-info h2.supports')]
+      //   .map((x,i) => { 
+      //     return {
+      //       performerName: x.innerText.trim(),
+      //       performerUris: [],
+      //       performerImageUris: [],
+      //       isPrimaryPerformer: i ==0
+      //     } as CapturePerformer
+      //     } ));
+      // for(let p of performerDoubleCheck) {
+      //   if (curEvent.performers.findIndex(x => x.performerName.toLowerCase()==p.performerName.toLowerCase()) == -1) {
+      //     curEvent.performers.push(p);
+      //   }
+      // }
     } else if (detailCtx.length > 1) {
       log.warningLogs.push(`Expected only 1 Detail Container Element, but there are ${detailCtx.length} for page: ${deps.curUri}`);
     } 
