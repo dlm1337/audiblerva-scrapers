@@ -260,7 +260,7 @@ let parseCamelDetailPageBrowserFn = (detailCtx, curEvent: models.CaptureEvent, l
         if (startDtElem) {
           curEvent.startDt = actualStartDt.toISOString();
         } else {
-          log.errorLogs.push(`Could not find start date from span.start.dtstart span.value-title on page: ${deps.curUri}`);
+          log.errorLogs.push(`Could not find start date from .eventStDate on page: ${deps.curUri}`);
         }
       }
 
@@ -286,20 +286,22 @@ let parseCamelDetailPageBrowserFn = (detailCtx, curEvent: models.CaptureEvent, l
 
       //name of main performer
       let mainPerformer :string = '';
-      let mainPermElem = curCtx.querySelector('.event-info .headliners');
-      if (mainPermElem) {
-        mainPerformer = mainPermElem.innerText.trim();
+      let mainPermElem = curCtx.querySelector('meta[property="og:title"]');
+      let mainPermElemText = mainPermElem.getAttribute('content');
+      if (mainPermElemText) {
+        mainPerformer = mainPermElemText.trim();
       } else {
-        log.warningLogs.push(`Expecting to find a main performer (h1.headliners.summary) for page: ${deps.curUri}`);
+        log.warningLogs.push(`Expecting to find a main performer (meta[property="og:title"]) for page: ${deps.curUri}`);
       }
 
       //get doors
-      let doorElem = curCtx.querySelector('h2.times span.doors');
-      if (doorElem) {
-        let doorTxt = doorElem.innerText.trim();
-        [curEvent.rawDoorTimeStr, curEvent.doorTimeHours, curEvent.doorTimeMin ] = injectedHelpers.parseTime(doorTxt);
+      let doorElem = curCtx.querySelector('.eventDoorStartDate');
+      let doorElemSpan = doorElem.querySelector('span');
+      if (doorElemSpan) {
+        let doorElemSpanTxt = doorElemSpan.innerText.trim();
+        [curEvent.rawDoorTimeStr, curEvent.doorTimeHours, curEvent.doorTimeMin ] = injectedHelpers.parseTime(doorElemSpanTxt);
       } else {
-        log.infoLogs.push(`No door info found in h2.times span.doors in div.event-detail for page: ${deps.curUri}`);
+        log.infoLogs.push(`No door info found in .eventDoorStartDate 1st child span for page: ${deps.curUri}`);
       }
 
       if (!curEvent.ticketCostRaw) {
