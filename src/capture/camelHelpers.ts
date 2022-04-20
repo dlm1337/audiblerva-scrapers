@@ -24,7 +24,135 @@ export const removeEventsWithMissingDates = (results: models.CaptureResults, log
     });
 }
 
-export const parseRichmondShows = async(page: puppeteer.Page, curEvent:models.CaptureEvent, log: models.CaptureLog, deps: any) : Promise<[models.CaptureLog, models.CaptureEvent]> => {    
+export const parseMainCamelPageBrowserFn = (daysCtx, results, log, deps): [models.CaptureLog, models.CaptureResults] => {  
+  try {    
+    //get each day w >= 1 event
+    
+    var x = 0;
+    for (let dayItem of daysCtx||[]) {      
+      //get each event
+      let eventsCtx = dayItem.querySelectorAll(deps.eventSelector);
+      for (let eventItem of eventsCtx||[]) {
+        let event = <models.CaptureEvent> {
+          tenantName: deps.channelCfg.TENANT_NAME,
+          channelName: deps.channelCfg.CHANNEL_NAME,
+          channelImage: deps.channelCfg.CHANNEL_IMAGE,
+          channelBaseUri: deps.channelCfg.PRIMARY_URI,
+          venueName: deps.channelCfg.VENUE_NAME,
+          performers: [] as models.CapturePerformer[],
+          eventImageUris: [] as string[],
+          eventUris: [] as models.UriType[],
+          miscDetail: [] as string[],
+          unparsedDetail: [] as string[],
+          ticketCost: [] as models.TicketAmtInfo[],
+          venueAddressLines: deps.channelCfg.VENUE_ADDRESS ? deps.channelCfg.VENUE_ADDRESS : [],
+          venueContactInfo: deps.channelCfg.VENUE_PHONENUM ? [ { item: deps.channelCfg.VENUE_PHONENUM, itemType: deps.CONTACT_ITEM_TYPES.PHONE }] : [],
+          eventContactInfo: [] as models.ContactInfoItem[],
+          minAge: null,
+          rawDoorTimeStr: null,
+          doorTimeHours: null,
+          doorTimeMin: null,
+          promoters: [] as models.PromoterInfo[],
+          neighborhood: deps.neighborhood       
+        };
+        
+        //get headliners
+        let titleSegments = [];
+        let headlinersLinkCtx = eventItem.querySelectorAll(".rhp-event-thumb");
+        for (let headlinerLinkItem of headlinersLinkCtx||[]) {
+         // let isPrimary = headlinerLinkItem.classList.contains('summary');
+          let linkElement = headlinerLinkItem.querySelector('a:first-child');
+          let eventUri :models.UriType = { uri: linkElement.getAttribute("href").trim(), isCaptureSrc: true};
+         // if (eventUri.uri) {
+           // eventUri.uri = deps.channelCfg.DOMAIN_NAME + eventUri.uri;
+         // }
+          let performerName = linkElement.getAttribute("title").trim()
+          let testExist = (el:models.CapturePerformer)=> el.performerName==performerName;
+          
+          if (event.eventUris.map(x => x.uri).indexOf(eventUri.uri) === -1) {
+            event.eventUris.push(eventUri);
+          }              
+          if (titleSegments.findIndex(testExist) === -1) {
+            titleSegments.push(performerName);
+            console.log(performerName);
+          }
+        }
+
+        // test if at broadberry
+        // let venueElem = eventItem.querySelector('h2.venue.location');
+        // if (venueElem) {
+        //       if (venueElem.innerText.match(/broadberry/i)) { 
+        //         event.venueName = deps.channelCfg.VENUE_NAME;
+        //       }
+        // }
+
+        //get supporting acts
+        // let supporterLinkCtx = eventItem.querySelectorAll("h2.supports a");
+        // for (let supporterLinkItem of supporterLinkCtx||[]) {
+        //   let eventUri :models.UriType = { uri: supporterLinkItem.getAttribute("href").trim(), isCaptureSrc: true};
+        //   if (eventUri.uri) {
+        //     eventUri.uri = deps.channelCfg.DOMAIN_NAME + eventUri.uri;
+        //   }
+
+        //   let performerName = supporterLinkItem.innerText.trim();
+        //   let testExist = (el:models.CapturePerformer)=> el.performerName==performerName;
+
+        //   if (event.eventUris.map(x => x.uri).indexOf(eventUri.uri) === -1) {
+        //     event.eventUris.push(eventUri);
+        //   }
+        //   if (titleSegments.findIndex(testExist) === -1) {
+        //     titleSegments.push(performerName);
+        //   }
+        // }
+
+        event.eventTitle = titleSegments.join(" / ");
+
+        //ticket link
+        let ticketsLink = eventItem.querySelector(".rhp-event-cta");
+        let ticketsA = ticketsLink.querySelector('a:first-child');
+        if (ticketsA) {
+          event.ticketUri = ticketsA.getAttribute("href").trim();
+          if (event.eventUris.map(x => x.uri).indexOf(event.ticketUri) === -1) {
+            event.eventUris.push({ uri: event.ticketUri, isCaptureSrc: false});
+          }
+        } 
+        try{
+          let ticketCost = eventItem.querySelector(".eventCost");  
+          let ticketCostSpan = ticketCost.querySelector("span");
+          let ticketCostText = ticketCostSpan.innerText.trim();
+          ticketCostText = ticketCostText.replace("$", "");
+          let ticketCostNum = parseInt(ticketCostText);
+          event.ticketCost.push(<models.TicketAmtInfo> { amt: ticketCostNum, qualifier: "" });
+        }catch(e) {
+        log.errorLogs.push(`No Ticket Cost: ${e.message}`);
+        event.ticketCostRaw = "Free";
+        event.ticketCost.push(<models.TicketAmtInfo> { amt: 0, qualifier: "" });
+        } 
+        //free events adv on the calendar, more ticket info is on the detail page
+        // let isFree = eventItem.querySelector("h3.free");
+        // if (isFree) {
+        //   event.ticketCostRaw = "Free";
+        //   event.ticketCost.push(<models.TicketAmtInfo> { amt: 0, qualifier: "" });
+        // }
+        
+        // if (eventItem.querySelector('h2.age-restriction.all-ages')) {
+        //   event.minAge = 0;
+        // } else if (eventItem.querySelector('h2.age-restriction.over-21')) {
+        //   event.minAge = 21;
+        // }
+
+        results.events.push(event);
+      } //event loop
+    } //day loop
+  }
+  catch(e) {
+    log.errorLogs.push(`Capture Main Page Exception Thrown: ${e.message}`);
+  }
+
+  return [log, results];
+}
+
+export const parseCamel = async(page: puppeteer.Page, curEvent:models.CaptureEvent, log: models.CaptureLog, deps: any) : Promise<[models.CaptureLog, models.CaptureEvent]> => {    
     try {
     //browse to the cur event's detail page
     await puppeteerUtils.goto(page, deps.curUri, deps.navSettings);
@@ -38,7 +166,7 @@ export const parseRichmondShows = async(page: puppeteer.Page, curEvent:models.Ca
     [log, curEvent ] = 
           await page.$$eval<[models.CaptureLog, models.CaptureEvent], models.CaptureEvent, models.CaptureLog, any>(
             RICHMONDSHOWS_CONTENT_SELECTOR, 
-            parseRichmondShowsDetailPageBrowserFn, 
+            parseCamelDetailPageBrowserFn, 
             curEvent,
             log,
             deps);
@@ -50,7 +178,7 @@ export const parseRichmondShows = async(page: puppeteer.Page, curEvent:models.Ca
   
 }
 
-let parseRichmondShowsDetailPageBrowserFn = (detailCtx, curEvent: models.CaptureEvent, log: models.CaptureLog, deps : any): [models.CaptureLog, models.CaptureEvent] => {  
+let parseCamelDetailPageBrowserFn = (detailCtx, curEvent: models.CaptureEvent, log: models.CaptureLog, deps : any): [models.CaptureLog, models.CaptureEvent] => {  
   try
   {    
     curEvent.detailPageInnerText = document.body.innerText;
@@ -286,132 +414,6 @@ let parseRichmondShowsDetailPageBrowserFn = (detailCtx, curEvent: models.Capture
   
   return [log, curEvent];
 };
-export const parseMainCamelPageBrowserFn = (daysCtx, results, log, deps): [models.CaptureLog, models.CaptureResults] => {  
-  try {    
-    //get each day w >= 1 event
-    
-    var x = 0;
-    for (let dayItem of daysCtx||[]) {      
-      //get each event
-      let eventsCtx = dayItem.querySelectorAll(deps.eventSelector);
-      for (let eventItem of eventsCtx||[]) {
-        let event = <models.CaptureEvent> {
-          tenantName: deps.channelCfg.TENANT_NAME,
-          channelName: deps.channelCfg.CHANNEL_NAME,
-          channelImage: deps.channelCfg.CHANNEL_IMAGE,
-          channelBaseUri: deps.channelCfg.PRIMARY_URI,
-          venueName: deps.channelCfg.VENUE_NAME,
-          performers: [] as models.CapturePerformer[],
-          eventImageUris: [] as string[],
-          eventUris: [] as models.UriType[],
-          miscDetail: [] as string[],
-          unparsedDetail: [] as string[],
-          ticketCost: [] as models.TicketAmtInfo[],
-          venueAddressLines: deps.channelCfg.VENUE_ADDRESS ? deps.channelCfg.VENUE_ADDRESS : [],
-          venueContactInfo: deps.channelCfg.VENUE_PHONENUM ? [ { item: deps.channelCfg.VENUE_PHONENUM, itemType: deps.CONTACT_ITEM_TYPES.PHONE }] : [],
-          eventContactInfo: [] as models.ContactInfoItem[],
-          minAge: null,
-          rawDoorTimeStr: null,
-          doorTimeHours: null,
-          doorTimeMin: null,
-          promoters: [] as models.PromoterInfo[],
-          neighborhood: deps.neighborhood       
-        };
-        
-        //get headliners
-        let titleSegments = [];
-        let headlinersLinkCtx = eventItem.querySelectorAll(".rhp-event-thumb");
-        for (let headlinerLinkItem of headlinersLinkCtx||[]) {
-         // let isPrimary = headlinerLinkItem.classList.contains('summary');
-          let linkElement = headlinerLinkItem.querySelector('a:first-child');
-          let eventUri :models.UriType = { uri: linkElement.getAttribute("href").trim(), isCaptureSrc: true};
-         // if (eventUri.uri) {
-           // eventUri.uri = deps.channelCfg.DOMAIN_NAME + eventUri.uri;
-         // }
-          let performerName = linkElement.getAttribute("title").trim()
-          let testExist = (el:models.CapturePerformer)=> el.performerName==performerName;
-          
-          if (event.eventUris.map(x => x.uri).indexOf(eventUri.uri) === -1) {
-            event.eventUris.push(eventUri);
-          }              
-          if (titleSegments.findIndex(testExist) === -1) {
-            titleSegments.push(performerName);
-            console.log(performerName);
-          }
-        }
 
-        // test if at broadberry
-        // let venueElem = eventItem.querySelector('h2.venue.location');
-        // if (venueElem) {
-        //       if (venueElem.innerText.match(/broadberry/i)) { 
-        //         event.venueName = deps.channelCfg.VENUE_NAME;
-        //       }
-        // }
-
-        //get supporting acts
-        // let supporterLinkCtx = eventItem.querySelectorAll("h2.supports a");
-        // for (let supporterLinkItem of supporterLinkCtx||[]) {
-        //   let eventUri :models.UriType = { uri: supporterLinkItem.getAttribute("href").trim(), isCaptureSrc: true};
-        //   if (eventUri.uri) {
-        //     eventUri.uri = deps.channelCfg.DOMAIN_NAME + eventUri.uri;
-        //   }
-
-        //   let performerName = supporterLinkItem.innerText.trim();
-        //   let testExist = (el:models.CapturePerformer)=> el.performerName==performerName;
-
-        //   if (event.eventUris.map(x => x.uri).indexOf(eventUri.uri) === -1) {
-        //     event.eventUris.push(eventUri);
-        //   }
-        //   if (titleSegments.findIndex(testExist) === -1) {
-        //     titleSegments.push(performerName);
-        //   }
-        // }
-
-        event.eventTitle = titleSegments.join(" / ");
-
-        //ticket link
-        let ticketsLink = eventItem.querySelector(".rhp-event-cta");
-        let ticketsA = ticketsLink.querySelector('a:first-child');
-        if (ticketsA) {
-          event.ticketUri = ticketsA.getAttribute("href").trim();
-          if (event.eventUris.map(x => x.uri).indexOf(event.ticketUri) === -1) {
-            event.eventUris.push({ uri: event.ticketUri, isCaptureSrc: false});
-          }
-        } 
-        try{
-          let ticketCost = eventItem.querySelector(".eventCost");  
-          let ticketCostSpan = ticketCost.querySelector("span");
-          let ticketCostText = ticketCostSpan.innerText.trim();
-          ticketCostText = ticketCostText.replace("$", "");
-          let ticketCostNum = parseInt(ticketCostText);
-          event.ticketCost.push(<models.TicketAmtInfo> { amt: ticketCostNum, qualifier: "" });
-        }catch(e) {
-        log.errorLogs.push(`No Ticket Cost: ${e.message}`);
-
-        event.ticketCost.push(<models.TicketAmtInfo> { amt: 0, qualifier: "" });
-        } 
-        //free events adv on the calendar, more ticket info is on the detail page
-        // let isFree = eventItem.querySelector("h3.free");
-        // if (isFree) {
-        //   event.ticketCostRaw = "Free";
-        //   event.ticketCost.push(<models.TicketAmtInfo> { amt: 0, qualifier: "" });
-        // }
-        
-        // if (eventItem.querySelector('h2.age-restriction.all-ages')) {
-        //   event.minAge = 0;
-        // } else if (eventItem.querySelector('h2.age-restriction.over-21')) {
-        //   event.minAge = 21;
-        // }
-
-        results.events.push(event);
-      } //event loop
-    } //day loop
-  }
-  catch(e) {
-    log.errorLogs.push(`Capture Main Page Exception Thrown: ${e.message}`);
-  }
-
-  return [log, results];
-}
 
 

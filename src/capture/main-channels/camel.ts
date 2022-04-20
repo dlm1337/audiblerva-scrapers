@@ -83,7 +83,7 @@ export async function main() {
 
         //scrape details page
         bundledRuntimeDependencies.curUri = eventDetailUri.uri;        
-        [log, curEvent] = await captureHelpersCamel.parseRichmondShows(page, curEvent, log, bundledRuntimeDependencies);
+        [log, curEvent] = await captureHelpersCamel.parseCamel(page, curEvent, log, bundledRuntimeDependencies);
 
         results.events[i] = curEvent;        
        // console.log(results.events[i]);
