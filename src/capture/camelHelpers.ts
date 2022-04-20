@@ -74,7 +74,7 @@ export const parseMainCamelPageBrowserFn = (daysCtx, results, log, deps): [model
           }              
           if (titleSegments.findIndex(testExist) === -1) {
             titleSegments.push(performerName);
-            console.log(performerName);
+           // console.log(performerName);
           }
         }
 
@@ -156,7 +156,7 @@ export const parseCamel = async(page: puppeteer.Page, curEvent:models.CaptureEve
     //add helpers from parsers module into page
     await puppeteerUtils.injectHelpers(page, [parsers, domUtils], 'injectedHelpers');
 
-    const RICHMONDSHOWS_CONTENT_SELECTOR : string = "div.entry-content article.event-detail";
+    const RICHMONDSHOWS_CONTENT_SELECTOR : string = "*";
     
     //scrape from container element
     [log, curEvent ] = 
@@ -216,9 +216,9 @@ let parseCamelDetailPageBrowserFn = (detailCtx, curEvent: models.CaptureEvent, l
         log.warningLogs.push(`No main image found from json+ld for page: ${deps.curUri}`);
       }
 
-      if (ldEvent.ageRange && ldEvent.typicalAgeRange === "all_ages") {
-        curEvent.minAge = 0;
-      }
+      // if (ldEvent.ageRange && ldEvent.typicalAgeRange === "all_ages") {
+      //   curEvent.minAge = 0;
+      // }
 
       if (ldEvent.offers && ldEvent.offers.url && !curEvent.ticketUri) {
         curEvent.ticketUri = ldEvent.offers.url;
@@ -229,33 +229,34 @@ let parseCamelDetailPageBrowserFn = (detailCtx, curEvent: models.CaptureEvent, l
       }
 
       if ((!curEvent.venueAddressLines || curEvent.venueAddressLines.length === 0) && ldEvent.location && ldEvent.location["@type"]=== 'Place') {
-        curEvent.venueAddressLines.push(ldEvent.location.streetAddress as string, ldEvent.location.addressLocality  as string, ldEvent.location.addressRegion as string, ldEvent.location.postalCode as string)
+        curEvent.venueAddressLines.push(ldEvent.location.address as string, ldEvent.location.name as string);
       }
       
-      if (ldEvent.doorTime) {
-        let doorTime = new Date(ldEvent.doorTime);
-        curEvent.doorTimeHours = doorTime.getHours();
-        curEvent.doorTimeMin = doorTime.getMilliseconds();
-      }
+      // if (ldEvent.doorTime) {
+      //   let doorTime = new Date(ldEvent.doorTime);
+      //   curEvent.doorTimeHours = doorTime.getHours();
+      //   curEvent.doorTimeMin = doorTime.getMilliseconds();
+      // }
       
       let curCtx = detailCtx[0];
 
       //promoter, if exists
-      let promoterElem = curCtx.querySelector('h2.topline-info');
-      if (promoterElem) {
-        curEvent.promoters.push({ name: promoterElem.innerText, desc: '', uris: []})
-      }
+      // let promoterElem = curCtx.querySelector('h2.topline-info');
+      // if (promoterElem) {
+      //   curEvent.promoters.push({ name: promoterElem.innerText, desc: '', uris: []})
+      // }
 
       //venue address/info, if exists and not already set
-      let venueElem = curCtx.querySelector('div.venue-info');
-      if (venueElem && (!curEvent.venueAddressLines || curEvent.venueAddressLines.length == 0)) {
-        curEvent.venueAddressLines.push( ...((venueElem.innerText.replace("Venue Information:\n", "").split("\n").filter(x => x))||[]) );
+      let venueElem = curCtx.querySelector('meta[name="twitter:description"]');
+      let venueElemAttr = venueElem.getAttribute('content');
+      if (venueElemAttr && (!curEvent.venueAddressLines || curEvent.venueAddressLines.length == 0)) {
+        curEvent.venueAddressLines.push( ...((venueElemAttr.replace("VENUE INFO:\n", "").split("\n").filter(x => x))||[]) );
       }
 
       //start date and time
-      let startDtElem = curCtx.querySelector('span.start.dtstart span.value-title');
+      let startDtElem = curCtx.querySelector('.eventStDate');
       if (startDtElem && !curEvent.startDt) {
-        let actualStartDt = new Date(startDtElem.getAttribute('title'));
+        let actualStartDt = new Date(startDtElem.innerText.trim());
         if (startDtElem) {
           curEvent.startDt = actualStartDt.toISOString();
         } else {
