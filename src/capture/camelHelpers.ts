@@ -130,11 +130,6 @@ export const parseMainCamelPageBrowserFn = (daysCtx, results, log, deps): [model
         event.ticketCost.push(<models.TicketAmtInfo> { amt: 0, qualifier: "" });
         } 
         //free events adv on the calendar, more ticket info is on the detail page
-        // let isFree = eventItem.querySelector("h3.free");
-        // if (isFree) {
-        //   event.ticketCostRaw = "Free";
-        //   event.ticketCost.push(<models.TicketAmtInfo> { amt: 0, qualifier: "" });
-        // }
         
         // if (eventItem.querySelector('h2.age-restriction.all-ages')) {
         //   event.minAge = 0;
