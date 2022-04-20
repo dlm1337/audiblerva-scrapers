@@ -249,8 +249,8 @@ let parseCamelDetailPageBrowserFn = (detailCtx, curEvent: models.CaptureEvent, l
       //venue address/info, if exists and not already set
       let venueElem = curCtx.querySelector('meta[name="twitter:description"]');
       let venueElemAttr = venueElem.getAttribute('content');
-      if (venueElemAttr && (!curEvent.venueAddressLines || curEvent.venueAddressLines.length == 0)) {
-        curEvent.venueAddressLines.push( ...((venueElemAttr.replace("VENUE INFO:\n", "").split("\n").filter(x => x))||[]) );
+      if (venueElemAttr) {
+        curEvent.venueAddressLines.push(venueElemAttr as string);
       }
 
       //start date and time
