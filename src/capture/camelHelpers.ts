@@ -120,6 +120,7 @@ export const parseMainCamelPageBrowserFn = (daysCtx, results, log, deps): [model
           let ticketCost = eventItem.querySelector(".eventCost");  
           let ticketCostSpan = ticketCost.querySelector("span");
           let ticketCostText = ticketCostSpan.innerText.trim();
+          event.ticketCostRaw = ticketCostText;
           ticketCostText = ticketCostText.replace("$", "");
           let ticketCostNum = parseInt(ticketCostText);
           event.ticketCost.push(<models.TicketAmtInfo> { amt: ticketCostNum, qualifier: "" });
