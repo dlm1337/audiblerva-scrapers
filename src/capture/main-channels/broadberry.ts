@@ -1,6 +1,6 @@
 export const CAPTURE_KEY : string = 'broadberry';
 
-import { puppeteer, puppeteerUtils, apiClient, models, parsers, domUtils, captureHelpers, awsHelpers, screenshots } from '../../barrel';
+import { puppeteer, puppeteerUtils, apiClient, models, parsers, domUtils, captureHelpersCamel, awsHelpers, screenshots } from '../../barrel';
 import { CFG } from '../../config';
 
 let envCfg = CFG[process.env.NODE_ENV || "development"];
@@ -56,7 +56,7 @@ export async function main() {
     [log, results] = await 
       page.$$eval<[models.CaptureLog, models.CaptureResults], models.CaptureResults, models.CaptureLog, any>(
         channelCfg.DAY_EVENT_SELECTOR, 
-        captureHelpers.parseMainCamelPageBrowserFn,
+        captureHelpersCamel.parseMainCamelPageBrowserFn,
         results,
         log,
         bundledRuntimeDependencies
@@ -64,7 +64,7 @@ export async function main() {
 
     console.log(`identified ${results.events.length} events`);
 
-    log = await screenshots.doScreenshot(log, page, channelCfg.PRIMARY_URI, envCfg.s3BucketName);
+   // log = await screenshots.doScreenshot(log, page, channelCfg.PRIMARY_URI, envCfg.s3BucketName);
     
     //Walk through each event in the results and navigate to its detail page
     for(let i = 0; results.events.length > 0 && i < results.events.length; i++) {
@@ -86,28 +86,28 @@ export async function main() {
 
         //scrape details page
         bundledRuntimeDependencies.curUri = eventDetailUri.uri;
-        [log, curEvent] = await captureHelpers.parseRichmondShows(page, curEvent, log, bundledRuntimeDependencies);
+        [log, curEvent] = await captureHelpersCamel.parseCamel(page, curEvent, log, bundledRuntimeDependencies);
 
         results.events[i] = curEvent;
-        // console.log(curEvent);
+        console.log(curEvent);
         // console.log(log)
 
       } //if event has detail page
     } //for each event
 
-    captureHelpers.removeEventsWithMissingDates(results, log);
+    captureHelpersCamel.removeEventsWithMissingDates(results, log);
     log.totalCapturedEvents = results.events.length;
 
-    if (envCfg.persistImagesToAws)
-      [ log, results ] = await awsHelpers.persistImagesToAws(log, results, envCfg.s3BucketName);
+   // if (envCfg.persistImagesToAws)
+   //   [ log, results ] = await awsHelpers.persistImagesToAws(log, results, envCfg.s3BucketName);
         
   } catch (e) {
     log.errorLogs.push(`Top-Level Capture Page Exception Thrown: ${e.message} at ${channelCfg.PRIMARY_URI}`);
   } finally {
-    captureHelpers.outputLog(log);   
+    captureHelpersCamel.outputLog(log);   
   }
     
-  let testHttp = await apiClient.postCaptureResults(log, results);
+ // let testHttp = await apiClient.postCaptureResults(log, results);
 
   return 0;
 }; //main

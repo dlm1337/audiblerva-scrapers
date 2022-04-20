@@ -71,7 +71,7 @@ export const CFG = {
     NEIGHBORHOOD: NEIGHBORHOODS.VCU
   },
   broadberry: {
-    PRIMARY_URI: "https://www.thebroadberry.com/calendar/",
+    PRIMARY_URI: "https://www.thebroadberry.com/events/",
     DOMAIN_NAME: "https://www.thebroadberry.com",
     CHANNEL_NAME: "Broadberry Website",
     CHANNEL_IMAGE: {
@@ -82,8 +82,8 @@ export const CFG = {
       width : 682
     },    
     TENANT_NAME: "UR",
-    DAY_EVENT_SELECTOR : ".entry-content .list-view",
-    MAIN_PAGE_EVENT_SELECTOR: ".list-view-item",    
+    DAY_EVENT_SELECTOR : "#rhp-events-pg-template",
+    MAIN_PAGE_EVENT_SELECTOR: ".eventWrapper",    
     NAV_SETTINGS: {
       timeout: 300000,
       waitUntil: []
