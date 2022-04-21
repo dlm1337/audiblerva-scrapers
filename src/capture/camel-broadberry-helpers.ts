@@ -174,9 +174,14 @@ export const parseCamelOrBroadberry = async(page: puppeteer.Page, curEvent:model
     }
   
 }
- 
 
 let parseCamelOrBroadberryDetPageBrwserFn = (detailCtx, curEvent: models.CaptureEvent, log: models.CaptureLog, deps : any): [models.CaptureLog, models.CaptureEvent] => {  
+  
+
+  let daysInMonth = (month, year) => {
+    return new Date(year, month, 0).getDate();
+  } 
+
   try
   {    
     curEvent.detailPageInnerText = document.body.innerText;
@@ -199,12 +204,36 @@ let parseCamelOrBroadberryDetPageBrwserFn = (detailCtx, curEvent: models.Capture
       if (!ldSuccess) {
         throw new Error(`Could not extract json+ld event data (@Type=='Event')`);
       } 
-        
-      if (ldEvent.startDate) {
-      
-           curEvent.startDt = new Date(ldEvent.startDate).toISOString();
 
-         
+      if (ldEvent.startDate) {
+        let date = new Date();
+        let dateDayInMonth = date.getDate();
+        let month = date.getMonth() + 1; 
+        let year = date.getFullYear(); 
+        let monthLen = daysInMonth(month, year); 
+        let eventDate = new Date(ldEvent.startDate);
+        let eventDayOfMonth = eventDate.getDate() - 1;
+        let y = 0;
+        for(let x = 0; x < 8; x++)
+        {
+          if(dateDayInMonth < monthLen){
+             dateDayInMonth += 1;
+             y++;
+          } else{
+             dateDayInMonth = 1;
+             y++;
+             month += 1;
+          }
+
+          if(y == 7 && eventDayOfMonth <= dateDayInMonth && (eventDate.getMonth() + 1) == month ){
+            curEvent.startDt = new Date(ldEvent.startDate).toISOString(); 
+            console.log("event was within 7 days.");
+          } else if(y == 7){
+            curEvent.startDt = null;
+            console.log("event was not within 7 days of scrape.");
+          }
+        }
+        
       } else {
         throw new Error(`Could not extract startDt from json+ld event data (@Type=='Event')`);
       }

@@ -89,7 +89,7 @@ export async function main() {
         [log, curEvent] = await captureHelpersCamel.parseCamelOrBroadberry(page, curEvent, log, bundledRuntimeDependencies);
 
         results.events[i] = curEvent;
-      //  console.log(curEvent);
+       // console.log(curEvent);
         // console.log(log)
 
       } //if event has detail page
