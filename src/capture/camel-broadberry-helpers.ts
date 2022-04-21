@@ -1,4 +1,4 @@
-import { doScreenshot } from './../core/screenshots';
+import { doScreenshot } from '../core/screenshots';
 declare const injectedHelpers : any, document: any;
 
 import {puppeteer, puppeteerUtils, models, captureHelpers, parsers, domUtils } from '../barrel';
@@ -11,8 +11,9 @@ export const outputLog = (log: models.CaptureLog) => {
     log.errorLogs.forEach(x => console.log(`\tError: ${x}`));
 }
 
-export const removeEventsWithMissingDates = (results: models.CaptureResults, log: models.CaptureLog) => {
+export const removeNoDateEvents = (results: models.CaptureResults, log: models.CaptureLog) => {
     results.events = results.events.filter(val => {
+     
         if (!val.startDt) {
             let eventUri = '';
             if (val && val.eventUris && val.eventUris.length)
@@ -24,7 +25,7 @@ export const removeEventsWithMissingDates = (results: models.CaptureResults, log
     });
 }
 
-export const parseMainCamelPageBrowserFn = (daysCtx, results, log, deps): [models.CaptureLog, models.CaptureResults] => {  
+export const parseMCamelOrBroadberryPgBrwserFn = (daysCtx, results, log, deps): [models.CaptureLog, models.CaptureResults] => {  
   try {    
     //get each day w >= 1 event
     
@@ -148,7 +149,7 @@ export const parseMainCamelPageBrowserFn = (daysCtx, results, log, deps): [model
   return [log, results];
 }
 
-export const parseCamel = async(page: puppeteer.Page, curEvent:models.CaptureEvent, log: models.CaptureLog, deps: any) : Promise<[models.CaptureLog, models.CaptureEvent]> => {    
+export const parseCamelOrBroadberry = async(page: puppeteer.Page, curEvent:models.CaptureEvent, log: models.CaptureLog, deps: any) : Promise<[models.CaptureLog, models.CaptureEvent]> => {    
     try {
     //browse to the cur event's detail page
     await puppeteerUtils.goto(page, deps.curUri, deps.navSettings);
@@ -162,7 +163,7 @@ export const parseCamel = async(page: puppeteer.Page, curEvent:models.CaptureEve
     [log, curEvent ] = 
           await page.$$eval<[models.CaptureLog, models.CaptureEvent], models.CaptureEvent, models.CaptureLog, any>(
             RICHMONDSHOWS_CONTENT_SELECTOR, 
-            parseCamelDetailPageBrowserFn, 
+            parseCamelOrBroadberryDetPageBrwserFn, 
             curEvent,
             log,
             deps);
@@ -173,8 +174,9 @@ export const parseCamel = async(page: puppeteer.Page, curEvent:models.CaptureEve
     }
   
 }
+ 
 
-let parseCamelDetailPageBrowserFn = (detailCtx, curEvent: models.CaptureEvent, log: models.CaptureLog, deps : any): [models.CaptureLog, models.CaptureEvent] => {  
+let parseCamelOrBroadberryDetPageBrwserFn = (detailCtx, curEvent: models.CaptureEvent, log: models.CaptureLog, deps : any): [models.CaptureLog, models.CaptureEvent] => {  
   try
   {    
     curEvent.detailPageInnerText = document.body.innerText;
@@ -197,9 +199,12 @@ let parseCamelDetailPageBrowserFn = (detailCtx, curEvent: models.CaptureEvent, l
       if (!ldSuccess) {
         throw new Error(`Could not extract json+ld event data (@Type=='Event')`);
       } 
-
+        
       if (ldEvent.startDate) {
-        curEvent.startDt = new Date(ldEvent.startDate).toISOString();
+      
+           curEvent.startDt = new Date(ldEvent.startDate).toISOString();
+
+         
       } else {
         throw new Error(`Could not extract startDt from json+ld event data (@Type=='Event')`);
       }

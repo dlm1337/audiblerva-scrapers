@@ -56,7 +56,7 @@ export async function main() {
     [log, results] = await 
       page.$$eval<[models.CaptureLog, models.CaptureResults], models.CaptureResults, models.CaptureLog, any>(
         channelCfg.DAY_EVENT_SELECTOR, 
-        captureHelpersCamel.parseMainCamelPageBrowserFn,
+        captureHelpersCamel.parseMCamelOrBroadberryPgBrwserFn,
         results,
         log,
         bundledRuntimeDependencies
@@ -86,16 +86,16 @@ export async function main() {
 
         //scrape details page
         bundledRuntimeDependencies.curUri = eventDetailUri.uri;
-        [log, curEvent] = await captureHelpersCamel.parseCamel(page, curEvent, log, bundledRuntimeDependencies);
+        [log, curEvent] = await captureHelpersCamel.parseCamelOrBroadberry(page, curEvent, log, bundledRuntimeDependencies);
 
         results.events[i] = curEvent;
-        console.log(curEvent);
+      //  console.log(curEvent);
         // console.log(log)
 
       } //if event has detail page
     } //for each event
 
-    captureHelpersCamel.removeEventsWithMissingDates(results, log);
+    captureHelpersCamel.removeNoDateEvents(results, log);
     log.totalCapturedEvents = results.events.length;
 
    // if (envCfg.persistImagesToAws)
