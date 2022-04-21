@@ -125,10 +125,9 @@ export const parseMCamelOrBroadberryPgBrwserFn = (daysCtx, results, log, deps): 
           ticketCostText = ticketCostText.replace("$", "");
           let ticketCostNum = parseInt(ticketCostText);
           event.ticketCost.push(<models.TicketAmtInfo> { amt: ticketCostNum, qualifier: "" });
-        }catch(e) {
-        log.errorLogs.push(`No Ticket Cost: ${e.message}`);
-        event.ticketCostRaw = "Free";
-        event.ticketCost.push(<models.TicketAmtInfo> { amt: 0, qualifier: "" });
+        }catch(e) { 
+          event.ticketCostRaw = "Free";
+          event.ticketCost.push(<models.TicketAmtInfo> { amt: 0, qualifier: "" });
         } 
         //free events adv on the calendar, more ticket info is on the detail page
         
@@ -160,7 +159,7 @@ export const parseCamelOrBroadberry = async(page: puppeteer.Page, curEvent:model
     const RICHMONDSHOWS_CONTENT_SELECTOR : string = "*";
     
     //scrape from container element
-    [log, curEvent ] = 
+    [log, curEvent] = 
           await page.$$eval<[models.CaptureLog, models.CaptureEvent], models.CaptureEvent, models.CaptureLog, any>(
             RICHMONDSHOWS_CONTENT_SELECTOR, 
             parseCamelOrBroadberryDetPageBrwserFn, 
@@ -207,36 +206,50 @@ let parseCamelOrBroadberryDetPageBrwserFn = (detailCtx, curEvent: models.Capture
 
       if (ldEvent.startDate) {
         let date = new Date();
-        let dateDayInMonth = date.getDate();
+        let dateDayInMonth = date.getDate() - 1;
+        let saveStartDay = dateDayInMonth;
         let month = date.getMonth() + 1; 
         let year = date.getFullYear(); 
         let monthLen = daysInMonth(month, year); 
         let eventDate = new Date(ldEvent.startDate);
         let eventDayOfMonth = eventDate.getDate() - 1;
         let y = 0;
-        for(let x = 0; x < 8; x++)
-        {
-          if(dateDayInMonth < monthLen){
-             dateDayInMonth += 1;
-             y++;
-          } else{
-             dateDayInMonth = 1;
-             y++;
-             month += 1;
-          }
-
-          if(y == 7 && eventDayOfMonth <= dateDayInMonth && (eventDate.getMonth() + 1) == month ){
-            curEvent.startDt = new Date(ldEvent.startDate).toISOString(); 
-            console.log("event was within 7 days.");
-          } else if(y == 7){
-            curEvent.startDt = null;
-            console.log("event was not within 7 days of scrape.");
-          }
-        }
+        let monthChange = false;
+        let stopAtWeek = false;
         
-      } else {
-        throw new Error(`Could not extract startDt from json+ld event data (@Type=='Event')`);
-      }
+            for(let x = 0; x < 8; x++){
+              if(dateDayInMonth < monthLen){
+                dateDayInMonth += 1;
+                y++;
+              } else{
+                dateDayInMonth = 1;
+                y++;
+                monthChange = true;
+                month +=1;
+              }
+
+              if(y == 7 && eventDayOfMonth <= dateDayInMonth && eventDayOfMonth >= saveStartDay && monthChange == false){
+                curEvent.startDt = new Date(ldEvent.startDate).toISOString(); 
+                console.log("event was within 7 days.");
+              } else if(y == 7 && monthChange == true && month == eventDate.getMonth() + 2 && eventDayOfMonth <= dateDayInMonth){
+                curEvent.startDt = new Date(ldEvent.startDate).toISOString(); 
+                console.log("event was within 7 days.");
+              } else if(y == 7 && monthChange == true && month == eventDate.getMonth() + 1 && saveStartDay <= eventDayOfMonth){
+                curEvent.startDt = new Date(ldEvent.startDate).toISOString(); 
+                console.log("event was within 7 days.");
+              } else if(y == 7){
+                curEvent.startDt = "";
+                console.log("event was not within 7 days of scrape. Stopping event collection.");
+                stopAtWeek = true;
+                break;
+              }
+            } 
+               
+              if(stopAtWeek == true){
+                return [log, curEvent];
+              }
+      }  
+   
 
       if (ldEvent.endDate) {
         curEvent.endDt = new Date(ldEvent.endDate).toISOString();
@@ -321,8 +334,8 @@ let parseCamelOrBroadberryDetPageBrwserFn = (detailCtx, curEvent: models.Capture
       //name of main performer
       let mainPerformer :string = '';
       let mainPermElem = curCtx.querySelector('meta[property="og:title"]');
-      let mainPermElemText = mainPermElem.getAttribute('content');
-      if (mainPermElemText) {
+      if (mainPermElem) {
+        let mainPermElemText = mainPermElem.getAttribute('content');
         mainPerformer = mainPermElemText.trim();
       } else {
         log.warningLogs.push(`Expecting to find a main performer (meta[property="og:title"]) for page: ${deps.curUri}`);
@@ -381,9 +394,8 @@ let parseCamelOrBroadberryDetPageBrwserFn = (detailCtx, curEvent: models.Capture
       let artistBoxCtx = curCtx.querySelectorAll(".singleEventDetails");
       for (let artistBoxElem of artistBoxCtx||[]) {
         let performerNameElem = artistBoxElem.querySelector('#eventTitle');
+        if (performerNameElem) {
         let performerNameElemTitle = performerNameElem.getAttribute('title');
-        if (performerNameElemTitle) {
-
         let curPerformer = <models.CapturePerformer> { 
           performerName: performerNameElemTitle.trim(),
           performerUris: [],

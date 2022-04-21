@@ -13,10 +13,10 @@ import * as sw from "./capture/main-channels/style-weekly";
     let runAll : boolean = process.argv.length <= 2;
     let evalRun = (captureJobName) : boolean => runAll || process.argv.indexOf(captureJobName) > 1;
     
-    // if (evalRun(camel.CAPTURE_KEY)) {
-    //     await camel.main()
-    //     console.log('i finished camel');
-    // }
+    if (evalRun(camel.CAPTURE_KEY)) {
+        await camel.main()
+        console.log('i finished camel');
+    }
 
     // if (evalRun(sm.CAPTURE_KEY)) {
     //     await sm.main()
