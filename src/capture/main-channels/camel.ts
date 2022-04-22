@@ -88,7 +88,7 @@ export async function main() {
         results.events[i] = curEvent;  
         if(curEvent.startDt == ""){
           break;
-       }
+        }
         
         console.log(results.events[i]);
       } //if event has detail page

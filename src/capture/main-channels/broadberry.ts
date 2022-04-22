@@ -87,17 +87,19 @@ export async function main() {
         //scrape details page
         bundledRuntimeDependencies.curUri = eventDetailUri.uri;
         [log, curEvent] = await captureHelpersCamel.parseCamelOrBroadberry(page, curEvent, log, bundledRuntimeDependencies);
+        results.events[i] = curEvent;  
         if(curEvent.startDt == ""){
-           break;
+          break;
         }
-        results.events[i] = curEvent;
-        console.log(curEvent);
+        
+        console.log(results.events[i]);
         // console.log(log)
 
       } //if event has detail page
     } //for each event
 
     //captureHelpersCamel.removeNoDateEvents(results, log);
+    results.events = results.events.filter(val => val.startDt);
     log.totalCapturedEvents = results.events.length;
 
    // if (envCfg.persistImagesToAws)
