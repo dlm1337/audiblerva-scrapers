@@ -3,7 +3,7 @@ declare const injectedHelpers : any, document: any;
 
 import {puppeteer, puppeteerUtils, models, captureHelpers, parsers, domUtils } from '../barrel';
 import { CapturePerformer } from '../core/models';
-import { runInNewContext } from 'vm';
+import { runInNewContext } from 'vm'; 
 
 export const outputLog = (log: models.CaptureLog) => {    
     console.log(`Capture Log: tenant: ${log.tenantName}, channelName: ${log.channelName}, date: ${log.logDt}...`);
@@ -205,52 +205,11 @@ let parseCamelOrBroadberryDetPageBrwserFn = (detailCtx, curEvent: models.Capture
       } 
 
       if (ldEvent.startDate) {
-        let date = new Date();
-        let dateDayInMonth = date.getDate() - 1;
-        let saveStartDay = dateDayInMonth;
-        let month = date.getMonth() + 1; 
-        let year = date.getFullYear(); 
-        let monthLen = daysInMonth(month, year); 
-        let eventDate = new Date(ldEvent.startDate);
-        let eventDayOfMonth = eventDate.getDate() - 1;
-        let y = 0;
-        let monthChange = false;
-        let stopAtWeek = false;
-        
-            for(let x = 0; x < 8; x++){
-              if(dateDayInMonth < monthLen){
-                dateDayInMonth += 1;
-                y++;
-              } else{
-                dateDayInMonth = 1;
-                y++;
-                monthChange = true;
-                month +=1;
-              }
-
-              if(y == 7 && eventDayOfMonth <= dateDayInMonth && eventDayOfMonth >= saveStartDay && monthChange == false){
-                curEvent.startDt = new Date(ldEvent.startDate).toISOString(); 
-                console.log("event was within 7 days.");
-              } else if(y == 7 && monthChange == true && month == eventDate.getMonth() + 2 && eventDayOfMonth <= dateDayInMonth){
-                curEvent.startDt = new Date(ldEvent.startDate).toISOString(); 
-                console.log("event was within 7 days.");
-              } else if(y == 7 && monthChange == true && month == eventDate.getMonth() + 1 && saveStartDay <= eventDayOfMonth){
-                curEvent.startDt = new Date(ldEvent.startDate).toISOString(); 
-                console.log("event was within 7 days.");
-              } else if(y == 7){
-                curEvent.startDt = "";
-                console.log("event was not within 7 days of scrape. Stopping event collection.");
-                stopAtWeek = true;
-                break;
-              }
-            } 
-               
-              if(stopAtWeek == true){
-                return [log, curEvent];
-              }
-      }  
+        curEvent.startDt = new Date(ldEvent.startDate).toISOString(); 
+      } else {
+        throw new Error(`Could not extract startDt from json+ld event data (@Type=='Event')`);
+      }
    
-
       if (ldEvent.endDate) {
         curEvent.endDt = new Date(ldEvent.endDate).toISOString();
       } else {
