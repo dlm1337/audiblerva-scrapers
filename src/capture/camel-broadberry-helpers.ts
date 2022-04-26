@@ -253,7 +253,7 @@ let parseCamelOrBroadberryDetPageBrwserFn = (detailCtx, curEvent: models.Capture
       // }
 
       //venue address/info, if exists and not already set
-      let venueElem = curCtx.querySelector('meta[name="twitter:description"]');
+      let venueElem = curCtx.querySelector('.venueLink');
       let venueElemAttr = venueElem.getAttribute('content');
       if (venueElemAttr) {
         curEvent.venueAddressLines.push(venueElemAttr as string);
